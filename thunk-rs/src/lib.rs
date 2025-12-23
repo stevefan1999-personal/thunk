@@ -5,8 +5,8 @@ use std::{env, io::Cursor, path::PathBuf, thread, time::Duration};
 use anyhow::bail;
 use reqwest::blocking::Client;
 
-const VC_LTL_DOWNLOAD_VERSION_DEFAULT: &'static str = "5.1.1";
-const YY_THUNKS_DOWNLOAD_VERSION_DEFAULT: &'static str = "1.1.3";
+const VC_LTL_DOWNLOAD_VERSION_DEFAULT: &'static str = "5.3.1";
+const YY_THUNKS_DOWNLOAD_VERSION_DEFAULT: &'static str = "1.1.9";
 
 /// This function should be call in build.rs.
 pub fn thunk() -> anyhow::Result<()> {
@@ -56,8 +56,8 @@ pub fn thunk() -> anyhow::Result<()> {
                 "VC_LTL",
                 "VC_LTL_URL",
                 &format!(
-                    "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v{}/VC-LTL-{}-Binary.7z",
-                    vcltl_download_version, vcltl_download_version
+                    "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v{}/VC-LTL-Binary.7z",
+                    vcltl_download_version
                 ),
                 &out_dir,
                 &format!("VC-LTL-{}", vcltl_download_version),
@@ -78,6 +78,11 @@ pub fn thunk() -> anyhow::Result<()> {
         });
 
         s.spawn(|| {
+            if cfg!(feature = "vc_ltl_only") {
+                println!("cargo::warning=YY-Thunks Skipped: Nothing to do!!");
+                bail!("skipped");
+            }
+
             // Enable YY-Thunks
             let yy_thunks_arch = if target_arch == "x86" { "x86" } else { "x64" };
             let yy_thunks_platform = if cfg!(feature = "win2k") && target_arch == "x86" {
@@ -109,7 +114,7 @@ pub fn thunk() -> anyhow::Result<()> {
             let yy_thunks = get_or_download(
                 "YY_THUNKS",
                 "YY_THUNKS_URL",
-                &format!("https://github.com/Chuyu-Team/YY-Thunks/releases/download/v{}/YY-Thunks-{}-Objs.zip", yy_thunks_download_version, yy_thunks_download_version),
+                &format!("https://github.com/Chuyu-Team/YY-Thunks/releases/download/v{}/YY-Thunks-Objs.zip", yy_thunks_download_version),
                 &out_dir,
                 &format!("YY-Thunks-{}", yy_thunks_download_version),
                 CompressedType::Zip,
